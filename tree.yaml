@@ -1,6 +1,6 @@
 rules:
 - id: SPO2_CHECK
-  when: value > {{SpO2_u}} or value < {{SpO2_l}}
+  when: vitals.get("SpO2") > {{SpO2_u}} or vitals.get("SpO2") < {{SpO2_l}}
   message: SpO2の値が正しいかチェックしてください
   severity: info
   tags:
@@ -9,7 +9,7 @@ rules:
   actions:
   - POSE_60min
 - id: SPO2_UPPER_FIO2_upper
-  when: value > {{SpO2_u}} and vitals.get("FiO2") > 21
+  when: vitals.get("SpO2") > {{SpO2_u}} and vitals.get("FiO2") > 21
   message: FiO2を10％下げる
   severity: info
   tags:
@@ -19,7 +19,7 @@ rules:
   - POSE_60min
 
 - id: SPO2_UPPER_NO
-  when: value > {{SpO2_u}} and vitals.get("FiO2", 21) <= 21 and vitals.get("NO", 0) > 0
+  when: vitals.get("SpO2") > {{SpO2_u}} and vitals.get("FiO2", 21) <= 21 and vitals.get("NO", 0) > 0
   message: NOを減量する
   severity: info
   tags:
@@ -52,7 +52,7 @@ rules:
   - r
   - SpO2
 - id: SPO2_LOWER
-  when: value < {{SpO2_l}} and vitals.get("FiO2") < 100
+  when: vitals.get("SpO2") < {{SpO2_l}} and vitals.get("FiO2") < 100
   message: FiO2を10％上げる
   severity: info
   tags:
@@ -68,7 +68,7 @@ rules:
   - r
   - SpO2
 - id: SPO2_LOWER_FIO2_100
-  when: value < {{SpO2_l}} and vitals.get("FiO2") >= 100
+  when: vitals.get("SpO2") < {{SpO2_l}} and vitals.get("FiO2") >= 100
   message: NO20ppmで使用してください
   severity: info
   tags:
