@@ -379,8 +379,10 @@ def main_loop(
     for k, v in thresholds.items():
         print(f"{k}: {v}")
 
-    tree_df = load_tree("tree.yaml")
-    bpup_tree_df = load_tree("bpup_tree.yaml")
+    # Load rule trees relative to this script so execution works regardless of
+    # the current working directory.
+    tree_df = load_tree(Path(__file__).with_name("tree.yaml"))
+    bpup_tree_df = load_tree(Path(__file__).with_name("bpup_tree.yaml"))
     last_timestamp = None
     last_instruction_time: dict[str, float] = {}
     vitals_memory = {
