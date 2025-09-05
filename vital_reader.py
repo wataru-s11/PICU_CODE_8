@@ -492,6 +492,11 @@ ALL_COLUMNS = [
     "Ca", "Glu", "Lac", "tBil", "HCO3", "BE", "Alb"
 ]
 
+# Columns that represent one-time events and should not be carried forward when
+# appending new vital rows. Currently only the IV bolus dose of furosemide is
+# treated as non-persistent so that it is logged only at the time of entry.
+NON_PERSISTENT_COLUMNS = {"furosemide_mg"}
+
 def save_vitals_to_csv(vitals_dict, csv_path):
     """Append ``vitals_dict`` to ``csv_path`` while preserving extra columns.
 
@@ -526,7 +531,11 @@ def save_vitals_to_csv(vitals_dict, csv_path):
             # carry forward the most recent values so that the latest row always
             # represents the current state.
             extra_cols = [
-                c for c in fieldnames if c not in ["timestamp"] + ALL_COLUMNS and c not in row
+                c
+                for c in fieldnames
+                if c not in ["timestamp"] + ALL_COLUMNS
+                and c not in row
+                and c not in NON_PERSISTENT_COLUMNS
             ]
             if rows and extra_cols:
                 last = rows[-1]
