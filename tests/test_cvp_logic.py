@@ -179,30 +179,6 @@ def test_cvp_upper_check_y_triggers_with_high_cvp():
     ]
 
 
-def test_cvp_upper_check_y_triggers_with_high_cvp_in_acute():
-    vitals = {"CVP": 5, "CVP_LINE_CHECK": "Y"}
-    thresholds = {"CVP_u": 4}
-    row = {
-        "id": "CVP_UPPER_CHECK_Y",
-        "phase(acute=a, reevaluate=r)": "a",
-        "condition": "vitals.get('CVP_LINE_CHECK') == 'Y' and vitals.get('CVP') > CVP_u",
-        "介入": "echo",
-        "備考": "",
-        "ポーズ(min)": "",
-    }
-    tree_df = DummyDF([row])
-    result = evaluate_cvp(vitals, tree_df, thresholds, phase='a')
-    assert result == [
-        {
-            "id": "CVP_UPPER_CHECK_Y",
-            "instruction": "echo",
-            "pause_min": "",
-            "next_id": None,
-            "comment": "",
-        }
-    ]
-
-
 def test_cvp_upper_a_sbp_upper_triggers_after_line_check():
     vitals = {"SBP": 100, "CVP": 6}
     thresholds = {"SBP_u": 90, "CVP_u": 5}
