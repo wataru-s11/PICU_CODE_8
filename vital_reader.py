@@ -40,7 +40,7 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover
     Image = None
 
-from bed_coords import BED_COORDS as BED_COORDS_8
+from bed_coords import BED_COORDS_8
 from bed_coords_4 import BED_COORDS_4
 
 cvp_model = None
@@ -570,7 +570,8 @@ if __name__ == "__main__":
     args = parse_args()
     config = load_config(args.config)
 
-    print(BED_COORDS.keys())
+    # Display available 8-screen bed coordinate keys
+    print(BED_COORDS_8.keys())
 
     cvp_model_path = resolve_path(
         args.cvp_model,
