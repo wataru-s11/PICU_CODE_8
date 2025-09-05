@@ -245,3 +245,83 @@ def test_evaluate_all_requires_spo2_check_before_actions(monkeypatch):
     ids2 = [r["id"] for r in res2 if r["id"] != "SPO2_CHECK"]
     assert ids2 == ["SPO2_LOWER"]
 
+
+def test_spo2_resolve_requires_normal_value():
+    thresholds = {"SpO2_l": 80, "SpO2_u": 100}
+    rows = [
+        {
+            "id": "SPO2_UPPER_resolve",
+            "phase(acute=a, reevaluate=r)": "r",
+            "condition": "vitals.get('SpO2') >= SpO2_l and vitals.get('SpO2') <= SpO2_u",
+            "介入": "resolved",
+            "備考": "",
+            "ポーズ(min)": "",
+            "再評価用NextID": None,
+        },
+        {
+            "id": "SPO2_LOWER_resolve",
+            "phase(acute=a, reevaluate=r)": "r",
+            "condition": "vitals.get('SpO2') >= SpO2_l and vitals.get('SpO2') <= SpO2_u",
+            "介入": "resolved",
+            "備考": "",
+            "ポーズ(min)": "",
+            "再評価用NextID": None,
+        },
+    ]
+    tree_df = _df(rows)
+
+    vitals_ok = {"SpO2": 95}
+    res_ok = evaluate_spo2(vitals_ok, tree_df, thresholds, phase="r")
+    assert res_ok == [
+        {
+            "id": "SPO2_UPPER_resolve",
+            "instruction": "resolved",
+            "pause_min": "",
+            "next_id": None,
+            "comment": "",
+        },
+        {
+            "id": "SPO2_LOWER_resolve",
+            "instruction": "resolved",
+            "pause_min": "",
+            "next_id": None,
+            "comment": "",
+        },
+    ]
+
+    vitals_bad = {"SpO2": 105}
+    res_bad = evaluate_spo2(vitals_bad, tree_df, thresholds, phase="r")
+    assert res_bad == []
+
+
+def test_spo2_lower_no20_triggers_only_when_low():
+    thresholds = {"SpO2_l": 80, "SpO2_u": 100}
+    rows = [
+        {
+            "id": "SPO2_LOWER_NO_20",
+            "phase(acute=a, reevaluate=r)": "r",
+            "condition": "vitals.get('SpO2') < SpO2_l and vitals.get('FiO2') >= 100 and vitals.get('NO', 0) >= 20",
+            "介入": "escalate",
+            "備考": "",
+            "ポーズ(min)": "",
+            "再評価用NextID": None,
+        }
+    ]
+    tree_df = _df(rows)
+
+    vitals_trigger = {"SpO2": 70, "FiO2": 100, "NO": 20}
+    res_trigger = evaluate_spo2(vitals_trigger, tree_df, thresholds, phase="r")
+    assert res_trigger == [
+        {
+            "id": "SPO2_LOWER_NO_20",
+            "instruction": "escalate",
+            "pause_min": "",
+            "next_id": None,
+            "comment": "",
+        }
+    ]
+
+    vitals_no_trigger = {"SpO2": 85, "FiO2": 100, "NO": 20}
+    res_no_trigger = evaluate_spo2(vitals_no_trigger, tree_df, thresholds, phase="r")
+    assert res_no_trigger == []
+
