@@ -237,7 +237,12 @@ def evaluate_all(vitals: dict, tree_df, thresholds, phase='a', bpup_tree_df=None
     sbp_l = thresholds.get("SBP_l")
     if sbp is not None:
         if sbp_u is not None and sbp > sbp_u:
-            instructions += evaluate_bpup(vitals, bpup_tree_df or tree_df, thresholds, phase)
+            # ``bpup_tree_df`` may be a DataFrame, which cannot be used directly in
+            # boolean expressions like ``bpup_tree_df or tree_df``.  Doing so raises
+            # ``ValueError: The truth value of a DataFrame is ambiguous``.  To avoid
+            # this we explicitly check for ``None`` and fall back to ``tree_df``.
+            chosen_tree = bpup_tree_df if bpup_tree_df is not None else tree_df
+            instructions += evaluate_bpup(vitals, chosen_tree, thresholds, phase)
         elif sbp_l is not None and sbp < sbp_l:
             instructions += evaluate_bpdown(vitals, tree_df, thresholds, phase)
     instructions += evaluate_bleed(vitals, tree_df, thresholds, phase)
