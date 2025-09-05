@@ -28,7 +28,7 @@ rules:
   actions:
   - POSE_60min
 - id: SPO2_UPPER_resolve
-  when: 'True'
+  when: vitals.get("SpO2") >= {{SpO2_l}} and vitals.get("SpO2") <= {{SpO2_u}}
   message: SpO2は基準値内に入りました
   severity: info
   tags:
@@ -61,7 +61,7 @@ rules:
   actions:
   - POSE_60min
 - id: SPO2_LOWER_resolve
-  when: 'True'
+  when: vitals.get("SpO2") >= {{SpO2_l}} and vitals.get("SpO2") <= {{SpO2_u}}
   message: SpO2は基準値内に入りました
   severity: info
   tags:
@@ -76,9 +76,9 @@ rules:
   - SpO2
   actions:
   - POSE_60min
-  - NEXT:SPO2_LOWER_NO
+  - NEXT:SPO2_LOWER_NO_20
 - id: SPO2_LOWER_NO_20
-  when: 'True'
+  when: vitals.get("SpO2") < {{SpO2_l}} and vitals.get("FiO2") >= 100 and vitals.get("NO", 0) >= 20
   message: 酸素やNOで酸素化をコントロールできない可能性があります。昇圧の検討または基準値を変更してください。
   severity: info
   tags:
