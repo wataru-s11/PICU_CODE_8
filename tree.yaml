@@ -558,8 +558,8 @@ rules:
   actions:
   - NEXT:なし
 - id: BLEED
-  when: 'True'
-  message: ドレーンパネルを入力してください
+  when: vitals.get("drain_ml", 0) >= 10
+  message: ドレーンに10mL以上の入力がありました。必要に応じてドレーンパネルを開いてください。
   severity: info
   tags:
   - r
