@@ -12,6 +12,11 @@ def _parse_condition(cond: str, item: str) -> str:
     """Convert a small DSL used in tree.yaml into a Python expression."""
     s = str(cond).strip()
     s = s.replace("{{", "").replace("}}", "")
+    # Replace direct dictionary access (vitals['X']) with a safe getter to avoid
+    # ``KeyError`` when a vital sign is missing from the ``vitals`` dict.  This
+    # mirrors how conditions written using ``value`` are expanded and keeps rule
+    # evaluation robust even if some measurements are unavailable.
+    s = re.sub(r"vitals\[['\"]([^'\"\]]+)['\"]\]", r"vitals.get('\1')", s)
 
     if s in ("True", "False"):
         return s
