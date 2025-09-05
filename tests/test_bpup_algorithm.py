@@ -52,3 +52,12 @@ def test_bpup_contomin_start():
 def test_bpup_contomin_difficult():
     vitals = {'noradrenaline': 0, 'pitressin': 0.01, 'hanp': 0.25, 'contomin': 0.2}
     assert _run(vitals) == '昇圧と降圧薬調整での降圧は難しい可能性があります'
+
+
+def test_bpup_pause_only_after_pitressin_reduction():
+    df = DummyDF([row])
+    vitals = {'noradrenaline': 0, 'pitressin': 0.04}
+    inst = evaluate_bpup(vitals, df, {}, 'a', {'pitressin': 0.05})[0]
+    assert inst['pause_min'] == 1
+    inst = evaluate_bpup(vitals, df, {}, 'a', {'pitressin': 0.04})[0]
+    assert inst['pause_min'] == 0
