@@ -251,7 +251,7 @@ rules:
   message: フロセミドIV
   severity: info
   tags:
-  - a
+  - a,r
   - SBP
   - CVP
   actions:
@@ -262,7 +262,7 @@ rules:
   message: エコーをしてタンポナーデをチェック
   severity: info
   tags:
-  - a
+  - a,r
   - SBP
   - CVP
   actions:

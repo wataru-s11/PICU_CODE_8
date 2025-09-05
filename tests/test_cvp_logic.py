@@ -178,3 +178,27 @@ def test_cvp_upper_check_y_triggers_with_high_cvp():
         }
     ]
 
+
+def test_cvp_upper_a_sbp_upper_triggers_after_line_check():
+    vitals = {"SBP": 100, "CVP": 6}
+    thresholds = {"SBP_u": 90, "CVP_u": 5}
+    row = {
+        "id": "CVP_UPPER_A_SBP_UPPER",
+        "phase(acute=a, reevaluate=r)": "r",
+        "condition": "vitals.get('SBP') > SBP_u and vitals.get('CVP') > CVP_u",
+        "介入": "furosemide",
+        "備考": "",
+        "ポーズ(min)": "",
+    }
+    tree_df = DummyDF([row])
+    result = evaluate_cvp(vitals, tree_df, thresholds, phase='r')
+    assert result == [
+        {
+            "id": "CVP_UPPER_A_SBP_UPPER",
+            "instruction": "furosemide",
+            "pause_min": "",
+            "next_id": None,
+            "comment": "",
+        }
+    ]
+
