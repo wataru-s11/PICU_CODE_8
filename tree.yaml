@@ -234,9 +234,10 @@ rules:
   - CVP_LINE_CHECK
   actions:
   - POSE_30min
-  - NEXT:CVP_UPPER_A_SBP_UPPER,CVP_UPPER_A_SBP_LOWER
+  - NEXT:CVP_UPPER_A_SBP_UPPER
+  - NEXT:CVP_UPPER_A_SBP_LOWER
 - id: CVP_UPPER_A_SBP_UPPER
-  when: vitals["CVP"] > {{CVP_u}} and vitals["SBP"] > {{SBP_u}}
+  when: "vitals['CVP'] > {{CVP_u}} and vitals['SBP'] > {{SBP_u}}"
   message: フロセミドIV
   severity: info
   tags:
@@ -247,7 +248,7 @@ rules:
   - POSE_10min
   - NEXT:CVP_FRO_CHECK
 - id: CVP_UPPER_A_SBP_LOWER
-  when: vitals["CVP"] > {{CVP_u}} and vitals["SBP"] < {{SBP_l}}
+  when: "vitals['CVP'] > {{CVP_u}} and vitals['SBP'] < {{SBP_l}}"
   message: エコーをしてタンポナーデをチェック
   severity: info
   tags:
