@@ -1,4 +1,4 @@
-BED_COORDS = {
+BED_COORDS_8 = {
     2: {
         "BP_COMBINED_COORD": (457, 441, 155, 38),
         "CVP_COORDS": (454, 477, 35, 33),
@@ -111,3 +111,6 @@ BED_COORDS = {
         }
     }
 }
+
+# Backward compatibility alias
+BED_COORDS = BED_COORDS_8
