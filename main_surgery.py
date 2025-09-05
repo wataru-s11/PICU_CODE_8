@@ -386,6 +386,7 @@ def main_loop(
         "CVP_CHECK_PAUSE_UNTIL": None,
         "SPO2_CHECK_PAUSE_UNTIL": None,
         "CVP_OBS_COUNT": 0,
+        "FRO_CVP_BASE": None,
     }
     print("\n==== 自動判定を開始（Ctrl+Cで終了）====")
     while True:
@@ -511,10 +512,15 @@ def main_loop(
                                 continue
                             if '終了' in str(nxt['instruction']):
                                 vitals_memory['EPISODE_LATCH'].add(_nid)
-                            cmt = fmt_comment(nxt.get('comment'))
-                            cmt_str = f"（{cmt})" if cmt else ""
-                            print(f"[{datetime.now().strftime('%H:%M:%S')}] ID={_nid} → {nxt['instruction']}{cmt_str}")
-                            last_instruction_time[_nid] = now
+                        cmt = fmt_comment(nxt.get('comment'))
+                        cmt_str = f"（{cmt})" if cmt else ""
+                        print(f"[{datetime.now().strftime('%H:%M:%S')}] ID={_nid} → {nxt['instruction']}{cmt_str}")
+                        last_instruction_time[_nid] = now
+                        if _nid == 'CVP_UPPER_A_SBP_UPPER':
+                            try:
+                                vitals_memory['FRO_CVP_BASE'] = float(vitals.get('CVP'))
+                            except (TypeError, ValueError):
+                                vitals_memory['FRO_CVP_BASE'] = None
             elif 'SPO2_CHECK' in ids:
                 check_list = [r for r in a_results if r['id'] == 'SPO2_CHECK']
                 for inst in check_list:
@@ -591,6 +597,11 @@ def main_loop(
                     cmt_str = f"（{cmt})" if cmt else ""
                     print(f"[{datetime.now().strftime('%H:%M:%S')}] ID={_id} → {inst['instruction']}{cmt_str}")
                     last_instruction_time[_id] = now
+                    if _id == 'CVP_UPPER_A_SBP_UPPER':
+                        try:
+                            vitals_memory['FRO_CVP_BASE'] = float(vitals.get('CVP'))
+                        except (TypeError, ValueError):
+                            vitals_memory['FRO_CVP_BASE'] = None
                     if '終了' in str(inst['instruction']):
                         vitals_memory['EPISODE_LATCH'].add(_id)
 
@@ -618,6 +629,24 @@ def main_loop(
                     vitals_memory['FRO_CHECK_ASKED'] = True
                     vitals['フロセミドチェック'] = ans
                     print(f"[{datetime.now().strftime('%H:%M:%S')}] ID={_id} → {inst['instruction']}（Y/N入力済）")
+                    try:
+                        cvp_now = float(vitals.get('CVP')) if vitals.get('CVP') not in (None, "") else None
+                    except (TypeError, ValueError):
+                        cvp_now = None
+                    cvp_base = vitals_memory.get('FRO_CVP_BASE')
+                    if ans == 'Y':
+                        if cvp_base is not None and cvp_now is not None and cvp_now < cvp_base:
+                            msg = "CVP下降傾向。経過観察してください。"
+                        else:
+                            msg = "CVP下降なし。追加対応を検討してください。"
+                        vitals_memory['EPISODE_LATCH'].add('CVP_FRO_YES')
+                    else:
+                        msg = (
+                            "輸血量を減らすことを検討してください。ＣＶＰの基準値を僧帽弁逆流・三尖弁逆流・心室の動きをエコーで見て変更することを考慮してください。"
+                        )
+                        vitals_memory['EPISODE_LATCH'].add('CVP_FRO_NO')
+                    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
+                    vitals_memory['FRO_CVP_BASE'] = None
                     last_instruction_time[_id] = now_ts
                     continue
 
