@@ -247,13 +247,13 @@ rules:
   - NEXT:CVP_UPPER_A_SBP_UPPER
   - NEXT:CVP_UPPER_A_SBP_LOWER
 - id: CVP_UPPER_A_SBP_UPPER
-  when: "vitals['CVP'] > {{CVP_u}} and vitals['SBP'] > {{SBP_u}}"
+  when: "vitals.get('CVP') > {{CVP_u}} and vitals.get('SBP') > {{SBP_u}}"
   message: フロセミドIV
   severity: info
   tags:
   - a,r
-  - SBP
   - CVP
+  - SBP
   actions:
   - POSE_10min
   - NEXT:CVP_FRO_CHECK
