@@ -240,7 +240,7 @@ rules:
   message: 心エコーでタンポナーデと房室弁逆流、心臓の動きをチェック
   severity: info
   tags:
-  - r
+  - a,r
   - CVP_LINE_CHECK
   actions:
   - POSE_30min
