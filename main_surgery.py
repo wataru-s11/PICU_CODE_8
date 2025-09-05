@@ -215,7 +215,7 @@ def adjust_spo2_actions(instructions, surgery_type: str):
 
 # ---------------- 共通評価 ----------------
 
-def evaluate_all(vitals: dict, tree_df, thresholds, phase='a'):
+def evaluate_all(vitals: dict, tree_df, thresholds, phase='a', bpup_tree_df=None):
     """Evaluate all vitals and return intervention instructions.
     """
     instructions = []
@@ -237,7 +237,7 @@ def evaluate_all(vitals: dict, tree_df, thresholds, phase='a'):
     sbp_l = thresholds.get("SBP_l")
     if sbp is not None:
         if sbp_u is not None and sbp > sbp_u:
-            instructions += evaluate_bpup(vitals, tree_df, thresholds, phase)
+            instructions += evaluate_bpup(vitals, bpup_tree_df or tree_df, thresholds, phase)
         elif sbp_l is not None and sbp < sbp_l:
             instructions += evaluate_bpdown(vitals, tree_df, thresholds, phase)
     instructions += evaluate_bleed(vitals, tree_df, thresholds, phase)
@@ -375,6 +375,7 @@ def main_loop(
         print(f"{k}: {v}")
 
     tree_df = load_tree("tree.yaml")
+    bpup_tree_df = load_tree("bpup_tree.yaml")
     last_timestamp = None
     last_instruction_time: dict[str, float] = {}
     vitals_memory = {
@@ -415,7 +416,7 @@ def main_loop(
                 )
 
             # A相
-            a_results_raw = evaluate_all(vitals, tree_df, thresholds, phase='a')
+            a_results_raw = evaluate_all(vitals, tree_df, thresholds, phase='a', bpup_tree_df=bpup_tree_df)
             a_results = adjust_spo2_actions(dedup_by_id(a_results_raw), surgery_type)
 
             ids = {r['id'] for r in a_results}
@@ -486,7 +487,7 @@ def main_loop(
 
                     # CHECK直後に、A相のうちCHECK以外を再評価して表示
                     if not skip_follow:
-                        follow_raw = evaluate_all(vitals, tree_df, thresholds, phase='a')
+                        follow_raw = evaluate_all(vitals, tree_df, thresholds, phase='a', bpup_tree_df=bpup_tree_df)
                         follow = [
                             r for r in adjust_spo2_actions(dedup_by_id(follow_raw), surgery_type)
                             if r['id'] not in ('CVP_UPPER_CHECK', 'CVP_UPPER_CHECK_Y', 'CVP_UPPER_CHECK_N')
@@ -553,7 +554,7 @@ def main_loop(
 
                     vitals_memory['SPO2_CHECK_DONE'] = 'Y'
                     vitals['SPO2_CHECK_DONE'] = 'Y'
-                    follow_raw = evaluate_all(vitals, tree_df, thresholds, phase='a')
+                    follow_raw = evaluate_all(vitals, tree_df, thresholds, phase='a', bpup_tree_df=bpup_tree_df)
                     follow = [
                         r for r in adjust_spo2_actions(dedup_by_id(follow_raw), surgery_type)
                         if r['id'] != 'SPO2_CHECK'
@@ -614,7 +615,7 @@ def main_loop(
                 vitals[key] = vitals_memory[key]
 
             r_results = adjust_spo2_actions(
-                dedup_by_id(evaluate_all(vitals, tree_df, thresholds, phase='r')),
+                dedup_by_id(evaluate_all(vitals, tree_df, thresholds, phase='r', bpup_tree_df=bpup_tree_df)),
                 surgery_type,
             )
             for inst in r_results:
