@@ -85,7 +85,7 @@ rules:
   - r
   - SpO2
 - id: CRIT_SpO2_ACUTE_UPPER
-  when: "vitals['SpO2'] > {{Critical_SpO2_u}}"
+  when: "vitals['SpO2'] > {{Critical_SpO2_u}} and vitals['SpO2'] < {{SpO2_u}}"
   message: 'Critical_SpO2_u<SpO2はSpO2<SpO2_uになるまで直ちにFiO2を下げ、NOを減量または中止してください'
   severity: info
   tags:
@@ -97,7 +97,7 @@ rules:
   - NEXT:CRIT_SpO2_REEVAL_UPPER
 
 - id: CRIT_SpO2_REEVAL_UPPER
-  when: "vitals['SpO2'] > {{Critical_SpO2_u}}"
+  when: "vitals['SpO2'] > {{Critical_SpO2_u}} and vitals['SpO2'] < {{SpO2_u}}"
   message: 窒素使用またはCritical_SpO2_uの基準値を変更することを検討してください
   severity: info
   tags:
@@ -105,7 +105,9 @@ rules:
   - SpO2
   - critical_SpO2_u
 - id: CRIT_UPPER_SpO2_REEVAL_UPPER_CRIT_CVP_UPPER
-  when: "vitals['SpO2'] > {{Critical_SpO2_u}}"
+  when: >
+    vitals['SpO2'] > {{Critical_SpO2_u}} and vitals['SpO2'] < {{SpO2_u}} and
+    vitals['CVP'] > {{CVP_c}}
   message: 上級医コール, ハイフローショック対応表示，急性心不全対応表示
   severity: info
   tags:
@@ -115,7 +117,9 @@ rules:
   actions:
   - POSE_15min
 - id: CRIT_UPPER_SpO2_REEVAL_UPPER_CVP_UPPER_UPPER
-  when: "vitals['SpO2'] > {{Critical_SpO2_u}}"
+  when: >
+    vitals['SpO2'] > {{Critical_SpO2_u}} and vitals['SpO2'] < {{SpO2_u}} and
+    vitals['CVP'] > {{CVP_u}} and vitals['SBP'] > {{SBP_u}}
   message: ハイフロー兆候対応表示，急性心不全対応表示
   severity: info
   tags:
@@ -125,7 +129,9 @@ rules:
   actions:
   - POSE_10min
 - id: CRIT_UPPER_SpO2_REEVAL_UPPER_CVP_UPPER_LOWER
-  when: "vitals['SpO2'] > {{Critical_SpO2_u}}"
+  when: >
+    vitals['SpO2'] > {{Critical_SpO2_u}} and vitals['SpO2'] < {{SpO2_u}} and
+    vitals['CVP'] > {{CVP_u}} and vitals['SBP'] < {{SBP_l}}
   message: ハイフロー進行注意、経過観察可能
   severity: info
   tags:
@@ -135,7 +141,9 @@ rules:
   actions:
   - POSE_10min
 - id: CRIT_UPPER_SpO2_REEVAL_LOWER_CVP_UPPER_UPPER
-  when: "vitals['SpO2'] < {{Critical_SpO2_l}}"
+  when: >
+    vitals['SpO2'] < {{Critical_SpO2_l}} and vitals['CVP'] > {{CVP_u}} and
+    vitals['SBP'] > {{SBP_u}}
   message: O2では心不全を解除できない、別の心不全治療方法を検討してください
   severity: info
   tags:
@@ -143,7 +151,9 @@ rules:
   - SpO2
   - critical_SpO2_l
 - id: CRIT_UPPER_SpO2_REEVAL_LOWER_CVP_UPPER_LOWER
-  when: "vitals['SpO2'] < {{Critical_SpO2_l}}"
+  when: >
+    vitals['SpO2'] < {{Critical_SpO2_l}} and vitals['CVP'] > {{CVP_u}} and
+    vitals['SBP'] < {{SBP_l}}
   message: O2に心不全治療が反応しています。ハイフローに引き続き注意してください
   severity: info
   tags:
