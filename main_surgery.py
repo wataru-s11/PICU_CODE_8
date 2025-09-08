@@ -257,6 +257,26 @@ def evaluate_all(vitals: dict, tree_df, thresholds, phase='a', bpup_tree_df=None
         })
     return instructions
 
+# ---------------- CVP follow-up ----------------
+
+def compute_cvp_follow_instructions(base_results, vitals, tree_df, thresholds, surgery_type, bpup_tree_df=None):
+    """Return follow-up instructions after CVP check.
+
+    Any instructions that were already present alongside ``CVP_UPPER_CHECK`` in
+    ``base_results`` (e.g. ``CVP_UPPER_A_SBP_UPPER``) are preserved and merged
+    with a fresh evaluation of all rules.  This ensures that subsequent actions
+    tied to elevated SBP are not lost when the CVP check is triggered.
+    """
+    other = [r for r in base_results if r.get("id") != "CVP_UPPER_CHECK"]
+    follow_raw = other + evaluate_all(
+        vitals, tree_df, thresholds, phase="a", bpup_tree_df=bpup_tree_df
+    )
+    return [
+        r
+        for r in adjust_spo2_actions(dedup_by_id(follow_raw), surgery_type)
+        if r["id"] not in ("CVP_UPPER_CHECK", "CVP_UPPER_CHECK_Y", "CVP_UPPER_CHECK_N")
+    ]
+
 # ---------------- データ取得 ----------------
 
 def get_latest_vitals(path: Union[Path, str]):
@@ -494,11 +514,9 @@ def main_loop(
 
                     # CHECK直後に、A相のうちCHECK以外を再評価して表示
                     if not skip_follow:
-                        follow_raw = evaluate_all(vitals, tree_df, thresholds, phase='a', bpup_tree_df=bpup_tree_df)
-                        follow = [
-                            r for r in adjust_spo2_actions(dedup_by_id(follow_raw), surgery_type)
-                            if r['id'] not in ('CVP_UPPER_CHECK', 'CVP_UPPER_CHECK_Y', 'CVP_UPPER_CHECK_N')
-                        ]
+                        follow = compute_cvp_follow_instructions(
+                            a_results, vitals, tree_df, thresholds, surgery_type, bpup_tree_df
+                        )
                         if not follow:
                             comment = handle_cvp_observation_comment(vitals_memory)
                             follow = [{
@@ -520,15 +538,15 @@ def main_loop(
                                 continue
                             if '終了' in str(nxt['instruction']):
                                 vitals_memory['EPISODE_LATCH'].add(_nid)
-                        cmt = fmt_comment(nxt.get('comment'))
-                        cmt_str = f"（{cmt})" if cmt else ""
-                        print(f"[{datetime.now().strftime('%H:%M:%S')}] ID={_nid} → {nxt['instruction']}{cmt_str}")
-                        last_instruction_time[_nid] = now
-                        if _nid == 'CVP_UPPER_A_SBP_UPPER':
-                            try:
-                                vitals_memory['FRO_CVP_BASE'] = float(vitals.get('CVP'))
-                            except (TypeError, ValueError):
-                                vitals_memory['FRO_CVP_BASE'] = None
+                            cmt = fmt_comment(nxt.get('comment'))
+                            cmt_str = f"（{cmt})" if cmt else ""
+                            print(f"[{datetime.now().strftime('%H:%M:%S')}] ID={_nid} → {nxt['instruction']}{cmt_str}")
+                            last_instruction_time[_nid] = now
+                            if _nid == 'CVP_UPPER_A_SBP_UPPER':
+                                try:
+                                    vitals_memory['FRO_CVP_BASE'] = float(vitals.get('CVP'))
+                                except (TypeError, ValueError):
+                                    vitals_memory['FRO_CVP_BASE'] = None
             elif 'SPO2_CHECK' in ids:
                 check_list = [r for r in a_results if r['id'] == 'SPO2_CHECK']
                 for inst in check_list:
