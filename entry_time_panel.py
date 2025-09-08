@@ -15,7 +15,23 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 import tkinter as tk
 from tkinter import ttk
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Optional, Tuple
+
+# Last recorded entry datetime shared across modules
+_ENTRY_DT: Optional[datetime] = None
+
+
+def set_entry_time(dt: datetime) -> None:
+    """Store the entry datetime for global access."""
+    global _ENTRY_DT
+    _ENTRY_DT = dt
+
+
+def get_elapsed_minutes() -> Optional[float]:
+    """Return elapsed minutes since entry time, or ``None`` if unknown."""
+    if _ENTRY_DT is None:
+        return None
+    return (datetime.now() - _ENTRY_DT).total_seconds() / 60.0
 
 # (upper bound in hours, label)
 PHASES: Tuple[Tuple[float, str], ...] = (
@@ -65,6 +81,7 @@ class EntryTimePanel(tk.Frame):
     def _set_now(self) -> None:
         now = datetime.now().replace(second=0, microsecond=0)
         self._entry_var.set(now.strftime("%Y-%m-%d %H:%M"))
+        set_entry_time(now)
 
     def _update(self) -> None:
         text = self._entry_var.get().strip()
@@ -75,6 +92,7 @@ class EntryTimePanel(tk.Frame):
             self._phase_var.set("---")
         else:
             delta = datetime.now() - entry
+            set_entry_time(entry)
             hours = int(delta.total_seconds() // 3600)
             minutes = int((delta.total_seconds() % 3600) // 60)
             self._elapsed_var.set(f"{hours:02d}:{minutes:02d}")

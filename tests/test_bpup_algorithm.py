@@ -25,9 +25,11 @@ row = {
     '備考': ''
 }
 
-def _run(vitals):
+def _run(vitals, elapsed=61):
     df = DummyDF([row])
-    return evaluate_bpup(vitals, df, {}, 'a')[0]['instruction']
+    return evaluate_bpup(vitals, df, {}, 'a', elapsed_minutes=elapsed)[0][
+        'instruction'
+    ]
 
 
 def test_bpup_noradrenaline():
@@ -57,7 +59,17 @@ def test_bpup_contomin_difficult():
 def test_bpup_pause_only_after_pitressin_reduction():
     df = DummyDF([row])
     vitals = {'noradrenaline': 0, 'pitressin': 0.04}
-    inst = evaluate_bpup(vitals, df, {}, 'a', {'pitressin': 0.05})[0]
+    inst = evaluate_bpup(
+        vitals, df, {}, 'a', {'pitressin': 0.05}, elapsed_minutes=61
+    )[0]
     assert inst['pause_min'] == 1
-    inst = evaluate_bpup(vitals, df, {}, 'a', {'pitressin': 0.04})[0]
+    inst = evaluate_bpup(
+        vitals, df, {}, 'a', {'pitressin': 0.04}, elapsed_minutes=61
+    )[0]
     assert inst['pause_min'] == 0
+
+
+def test_bpup_a_suppressed_within_one_hour():
+    df = DummyDF([row])
+    vitals = {'noradrenaline': 0.05}
+    assert evaluate_bpup(vitals, df, {}, 'a', elapsed_minutes=30) == []
