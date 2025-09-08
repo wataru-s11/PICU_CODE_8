@@ -3,7 +3,14 @@ from common.rule_engine import evaluate_rules
 # BPUP（SBP上昇時）に関連する複数薬剤介入（CONT, HANP, VASO）含む
 
 
-def evaluate_bpup(vitals, tree_df, thresholds=None, phase='a', previous_vitals=None):
+def evaluate_bpup(
+    vitals,
+    tree_df,
+    thresholds=None,
+    phase='a',
+    previous_vitals=None,
+    elapsed_minutes=None,
+):
     """Evaluate BPUP-related rules from the tree data.
 
     Parameters
@@ -21,9 +28,14 @@ def evaluate_bpup(vitals, tree_df, thresholds=None, phase='a', previous_vitals=N
         or when the pitressin dose has not been reduced, the pause action for
         BPUP_A is cleared so that a timer is started only after a reduction
         is actually input.
+    elapsed_minutes : float, optional
+        Minutes since room entry.  ``BPUP_A`` is suppressed when less than 60.
     """
     prefixes = ["BPUP", "CONT", "HANP", "VASO"]
     instructions = evaluate_rules(vitals, tree_df, prefixes, thresholds, phase)
+
+    if elapsed_minutes is not None and elapsed_minutes < 60:
+        instructions = [i for i in instructions if i.get("id") != "BPUP_A"]
 
     prev = previous_vitals or {}
 

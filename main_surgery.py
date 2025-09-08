@@ -242,7 +242,15 @@ def evaluate_all(vitals: dict, tree_df, thresholds, phase='a', bpup_tree_df=None
             # ``ValueError: The truth value of a DataFrame is ambiguous``.  To avoid
             # this we explicitly check for ``None`` and fall back to ``tree_df``.
             chosen_tree = bpup_tree_df if bpup_tree_df is not None else tree_df
-            instructions += evaluate_bpup(vitals, chosen_tree, thresholds, phase)
+            try:
+                from entry_time_panel import get_elapsed_minutes
+
+                elapsed = get_elapsed_minutes()
+            except Exception:
+                elapsed = None
+            instructions += evaluate_bpup(
+                vitals, chosen_tree, thresholds, phase, elapsed_minutes=elapsed
+            )
         elif sbp_l is not None and sbp < sbp_l:
             instructions += evaluate_bpdown(vitals, tree_df, thresholds, phase)
     instructions += evaluate_bleed(vitals, tree_df, thresholds, phase)
